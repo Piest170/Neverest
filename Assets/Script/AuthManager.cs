@@ -1,25 +1,10 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
-
-[Serializable]
-public class RegisterCreds
-{
-    public string email;
-    public string username;
-    public string password;
-    public string confirmPassword;
-}
-
-[Serializable]
-public class LoginCreds
-{
-    public string username;
-    public string password;
-}
+using Assets.Script.Models;
 
 public class AuthManager : MonoBehaviour
 {
@@ -34,9 +19,13 @@ public class AuthManager : MonoBehaviour
     [SerializeField]
     public TMP_InputField registerconfirmPassword;
     [SerializeField]
+    public TMP_Text registerNotifytext;
+    [SerializeField]
     public TMP_InputField loginusername;
     [SerializeField]
     public TMP_InputField loginpassword;
+    [SerializeField]
+    public TMP_Text LoginNotifytext;
 
     private void Awake()
     {
@@ -88,21 +77,24 @@ public class AuthManager : MonoBehaviour
 
             if (restAPI.isNetworkError || restAPI.isHttpError)
             {
+                var message = JsonUtility.FromJson<ServiceResponse<string>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
                 Debug.Log(restAPI.error);
+                registerNotifytext.text = message.message;
             }
             else
             {
                 Debug.Log("Form upload complete!");
                 if (restAPI.isDone)
                 {
-                    string token = JsonUtility.FromJson<string>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
+                    var token = JsonUtility.FromJson<ServiceResponse<string>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
                     if (token == null)
                     {
                         Debug.Log("register failed");
+                        registerNotifytext.text = token.message;
                     }
                     else
                     {
-                        Debug.Log(token);//this DISPLAYS the information the rest api sent in response to the POST.
+                        Debug.Log(token);
                     }
                 }
             }
@@ -124,20 +116,25 @@ public class AuthManager : MonoBehaviour
 
             if (restAPI.isNetworkError || restAPI.isHttpError)
             {
+                var message = JsonUtility.FromJson<ServiceResponse<string>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
                 Debug.Log(restAPI.error);
+                LoginNotifytext.text = message.message;
             }
             else
             {
                 Debug.Log("Form upload complete!");
                 if (restAPI.isDone)
                 {
-                    string token = JsonUtility.FromJson<string>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
+                    var token = JsonUtility.FromJson<ServiceResponse<string>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
                     if (token == null)
                     {
                         Debug.Log("failed log in");
+                        LoginNotifytext.text = token.message;
                     }
                     else
                     {
+                        PlayerPrefs.SetString("CharacterId", token.data);
+                        SceneManager.LoadScene("Village");
                         Debug.Log(token);
                     }
                 }

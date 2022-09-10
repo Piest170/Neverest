@@ -56,11 +56,18 @@
     <Analyzer Include="C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Script\CharacterSkillManager.cs" />
+    <Compile Include="Assets\Script\DoorTrigger.cs" />
+    <Compile Include="Assets\Script\Models\ServiceResponse.cs" />
+    <Compile Include="Assets\Script\Door.cs" />
     <Compile Include="Assets\Script\GameManager.cs" />
     <Compile Include="Assets\Script\AuthManager.cs" />
+    <Compile Include="Assets\Script\NPC.cs" />
+    <Compile Include="Assets\Script\Models\LoginCreds.cs" />
+    <Compile Include="Assets\Script\Models\Character.cs" />
     <Compile Include="Assets\Script\UIManager.cs" />
-    <Compile Include="Assets\Script\PlayerMovement.cs" />
+    <Compile Include="Assets\Script\Player.cs" />
+    <Compile Include="Assets\Script\Models\Auth.cs" />
+    <Compile Include="Assets\Script\Models\Skill.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Imports\TextMesh Pro\Shaders\TMPro.cginc" />
