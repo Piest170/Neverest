@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
 using Assets.Script.Models;
+using Unity.VisualScripting;
+using System.Linq;
 
 public class AuthManager : MonoBehaviour
 {
@@ -21,6 +23,14 @@ public class AuthManager : MonoBehaviour
     [SerializeField]
     public TMP_Text registerNotifytext;
     [SerializeField]
+    public TMP_Text EmailNotifytext;
+    [SerializeField]
+    public TMP_Text UsernameNotifytext;
+    [SerializeField]
+    public TMP_Text PasswordNotifytext;
+    [SerializeField]
+    public TMP_Text ConfirmPasswordNotifytext;
+    [SerializeField]
     public TMP_InputField loginusername;
     [SerializeField]
     public TMP_InputField loginpassword;
@@ -29,6 +39,13 @@ public class AuthManager : MonoBehaviour
 
     private void Awake()
     {
+        registeremail.text = "";
+        registerusername.text = "";
+        registerpassword.text = "";
+        registerconfirmPassword.text = "";
+        loginusername.text = "";
+        loginpassword.text = "";
+        Debug.Log(PlayerPrefs.GetString("CharacterId"));
         DontDestroyOnLoad(gameObject);
         if (Instance == null)
         {
@@ -77,24 +94,55 @@ public class AuthManager : MonoBehaviour
 
             if (restAPI.isNetworkError || restAPI.isHttpError)
             {
-                var message = JsonUtility.FromJson<ServiceResponse<string>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
-                Debug.Log(restAPI.error);
-                registerNotifytext.text = message.message;
+                if (restAPI.responseCode == 400)
+                {
+                    var message = JsonUtility.FromJson<ModelInvalidResponse<ModelRegisterInvalidError>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
+                    Debug.Log(restAPI.error);
+                    string EmailText = "";
+                    string UsernameText = "";
+                    string PasswordText = "";
+                    string ConfirmPasswordText = "";
+                    if (message.errors.Email != null) {
+                        EmailText += string.Join(',', message.errors.Email);
+                        EmailNotifytext.text = EmailText;
+                    }
+                    if (message.errors.Username != null) {
+                        UsernameText += string.Join(',', message.errors.Username);
+                        UsernameNotifytext.text = UsernameText;
+                    }
+                    if (message.errors.Password != null)
+                    {
+                        PasswordText += string.Join(',', message.errors.Password);
+                        PasswordNotifytext.text = PasswordText;
+                    }
+                    if(message.errors.ConfirmPassword != null)
+                    {
+                        ConfirmPasswordText += string.Join(',', message.errors.ConfirmPassword);
+                        ConfirmPasswordNotifytext.text = ConfirmPasswordText;
+                    }
+                }
+                else
+                {
+                    var message = JsonUtility.FromJson<ServiceResponse<string>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
+                    Debug.Log(restAPI.error);
+                    registerNotifytext.text = message.message;
+                }
             }
             else
             {
-                Debug.Log("Form upload complete!");
+                Debug.Log("Form register complete!");
                 if (restAPI.isDone)
                 {
                     var token = JsonUtility.FromJson<ServiceResponse<string>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
                     if (token == null)
                     {
-                        Debug.Log("register failed");
+                        Debug.Log("register failed!");
                         registerNotifytext.text = token.message;
                     }
                     else
                     {
-                        Debug.Log(token);
+                        Debug.Log("register completed!");
+                        registerNotifytext.text = token.message;
                     }
                 }
             }
@@ -122,7 +170,7 @@ public class AuthManager : MonoBehaviour
             }
             else
             {
-                Debug.Log("Form upload complete!");
+                Debug.Log("Form login complete!");
                 if (restAPI.isDone)
                 {
                     var token = JsonUtility.FromJson<ServiceResponse<string>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));

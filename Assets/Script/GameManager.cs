@@ -7,6 +7,7 @@ using UnityEngine.Networking;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+    public bool InData;
 
     // Start is called before the first frame update
     void Start()
@@ -25,7 +26,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public IEnumerator GetCharacter(int id)
@@ -48,9 +49,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public IEnumerator GetSkillModel(int id)
+    public IEnumerator GetCharacterSkill(CharacterSkill characterSkill)
     {
-        string URL = "https://localhost:7094/api/Skill/" + id;
+        string URL = "https://localhost:7094/api/Character/Skill?characterid=" + characterSkill.characterId + "&skillid=" + characterSkill.skillId + "&level=" + characterSkill.learningLevel;
         UnityWebRequest restAPI = UnityWebRequest.Get(URL);
         yield return restAPI.SendWebRequest();
         if (restAPI.result != UnityWebRequest.Result.Success)
@@ -63,10 +64,31 @@ public class GameManager : MonoBehaviour
             Debug.Log(restAPI.downloadHandler.text);
 
             // Or retrieve results as binary data
-            byte[] results = restAPI.downloadHandler.data;
+            var results = JsonUtility.FromJson<ServiceResponse<string>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
             Debug.Log(results);
+            InData = results.success;
         }
     }
+
+    //public IEnumerator GetSkillModel(int id)
+    //{
+    //    string URL = "https://localhost:7094/api/Skill/" + id;
+    //    UnityWebRequest restAPI = UnityWebRequest.Get(URL);
+    //    yield return restAPI.SendWebRequest();
+    //    if (restAPI.result != UnityWebRequest.Result.Success)
+    //    {
+    //        Debug.Log(restAPI.error);
+    //    }
+    //    else
+    //    {
+    //        // Show results as text
+    //        Debug.Log(restAPI.downloadHandler.text);
+
+    //        // Or retrieve results as binary data
+    //        byte[] results = restAPI.downloadHandler.data;
+    //        Debug.Log(results);
+    //    }
+    //}
 
     public IEnumerator LearnSkill(SkillCreds[] skill)
     {

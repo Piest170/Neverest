@@ -1,4 +1,5 @@
 ﻿using Assets.Script.Models;
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,14 +16,18 @@ public class NPC : MonoBehaviour
     public string[] PreDialog, PostDialog;
     private int index;
 
-    public bool IsAppear;
+    public bool IsAppear, IsAction, IsClose;
     public float textSpeed;
-    public bool IsClose;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        IsAction = false;
+        IsAppear = false;
+        Debug.Log("CharacterId : " + PlayerPrefs.GetString("CharacterId"));
+        Debug.Log("SkillId : " + PlayerPrefs.GetString("SkillId"));
+        Debug.Log("Level : " + PlayerPrefs.GetString("LearningLevel"));
+        Debug.Log("AppearStatus : " + IsAppear);
     }
 
     // Update is called once per frame
@@ -30,22 +35,29 @@ public class NPC : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.E) && IsClose)
         {
-            if (dialogPanel.activeInHierarchy)
-            {
-                newText();
-            }
-            else
-            {
-                NotifyPanel.SetActive(false);
-                dialogPanel.SetActive(true);
-                SkillPanel.SetActive(false);
-                StartCoroutine(TextType());
+            IsAction = false;
+            IsAppear = false;
+            Dialog();
+        }
+    }
 
-                //Button b = GameObject.Find("Panel").AddComponent<Button>();
-                //b.name = "button1";
-                //GameObject.Find("button1").GetComponentInChildren<Text>().text = "Hello";
-                //b.transform.parent = GameObject.Find("Panel").GetComponent<RectTransform>();
-            }
+    public void Dialog()
+    {
+        if (dialogPanel.activeInHierarchy)
+        {
+            newText();
+        }
+        else
+        {
+            NotifyPanel.SetActive(false);
+            dialogPanel.SetActive(true);
+            SkillPanel.SetActive(false);
+            StartCoroutine(TextType());
+
+            //Button b = GameObject.Find("Panel").AddComponent<Button>();
+            //b.name = "button1";
+            //GameObject.Find("button1").GetComponentInChildren<Text>().text = "Hello";
+            //b.transform.parent = GameObject.Find("Panel").GetComponent<RectTransform>();
         }
     }
 
@@ -54,17 +66,29 @@ public class NPC : MonoBehaviour
         DialogText.text = "";
         index = 0;
         dialogPanel.SetActive(false);
-        PlayerPrefs.SetString("SkillId", null);
-        PlayerPrefs.SetString("LearningLevel", null);
         SkillPanel.SetActive(true);
-        IsAppear = true;
+        if (IsAction)
+        {
+            PlayerPrefs.SetString("SkillId", null);
+            PlayerPrefs.SetString("LearningLevel", null);
+            SkillPanel.SetActive(false);
+        }
     }
 
     IEnumerator TextType()
     {
-        if (IsAppear)
+        if (!IsAction)
         {
+
             foreach (char letter in PreDialog[index].ToCharArray())
+            {
+                DialogText.text += letter;
+                yield return new WaitForSeconds(textSpeed);
+            }
+        }
+        else
+        {
+            foreach (char letter in PostDialog[index].ToCharArray())
             {
                 DialogText.text += letter;
                 yield return new WaitForSeconds(textSpeed);
@@ -74,7 +98,7 @@ public class NPC : MonoBehaviour
 
     public void newTextLine()
     {
-        if(index < PreDialog.Length - 1)
+        if ((index < PreDialog.Length - 1) || (index < PostDialog.Length))
         {
             index++;
             DialogText.text = "";
@@ -107,59 +131,50 @@ public class NPC : MonoBehaviour
 
     public void GetHTML()
     {
-        StartCoroutine(GameManager.Instance.GetSkillModel(1));
-        Level2Panel.SetActive(true);
         PlayerPrefs.SetString("SkillId", "1");
+        Level2Panel.SetActive(true);
     }
 
     public void GetCSS()
     {
-        StartCoroutine(GameManager.Instance.GetSkillModel(2));
         PlayerPrefs.SetString("SkillId", "2");
         PlayerPrefs.SetString("LearningLevel", "1");
     }
 
     public void GetJavaScript()
     {
-        StartCoroutine(GameManager.Instance.GetSkillModel(3));
         PlayerPrefs.SetString("SkillId", "3");
         Level2Panel.SetActive(true);
     }
 
     public void GetTypeScript()
     {
-        StartCoroutine(GameManager.Instance.GetSkillModel(4));
         PlayerPrefs.SetString("SkillId", "4");
         Level2Panel.SetActive(true);
     }
 
     public void GetAngular()
     {
-        StartCoroutine(GameManager.Instance.GetSkillModel(5));
         PlayerPrefs.SetString("SkillId", "5");
         Level3Panel.SetActive(true);
     }
     public void GetCsharp()
     {
-        StartCoroutine(GameManager.Instance.GetSkillModel(6));
         PlayerPrefs.SetString("SkillId", "6");
         Level3Panel.SetActive(true);
     }
     public void GetAspNet()
     {
-        StartCoroutine(GameManager.Instance.GetSkillModel(7));
         PlayerPrefs.SetString("SkillId", "7");
         Level3Panel.SetActive(true);
     }
     public void GetJava()
     {
-        StartCoroutine(GameManager.Instance.GetSkillModel(8));
         PlayerPrefs.SetString("SkillId", "8");
         Level2Panel.SetActive(true);
     }
     public void GetPython()
     {
-        StartCoroutine(GameManager.Instance.GetSkillModel(9));
         PlayerPrefs.SetString("SkillId", "9");
         Level2Panel.SetActive(true);
     }
@@ -170,6 +185,13 @@ public class NPC : MonoBehaviour
         string skillId = PlayerPrefs.GetString("SkillId"); // choose in UI dialog
         string level = PlayerPrefs.GetString("LearningLevel"); // choose in UI dialog
 
+        CharacterSkill characterSkill = new CharacterSkill()
+        {
+            characterId = int.Parse(characterId),
+            skillId = int.Parse(skillId),
+            learningLevel = int.Parse(level)
+        };
+        StartCoroutine(GameManager.Instance.GetCharacterSkill(characterSkill));
         SkillCreds skill = new SkillCreds()
         {
             characterId = int.Parse(characterId),
@@ -177,13 +199,22 @@ public class NPC : MonoBehaviour
             learningLevel = int.Parse(level),
             learningStatus = "Learning"
         };
-        StartCoroutine(GameManager.Instance.GetCharacter(int.Parse(characterId)));
-        var skills = new List<SkillCreds>();
-        skills.Add(skill);
-        StartCoroutine(GameManager.Instance.LearnSkill(skills.ToArray()));
-        PlayerPrefs.SetString("SkillId", null);
-        PlayerPrefs.SetString("LearningLevel", null);
-        SkillPanel.SetActive(false);
+        Debug.Log("Data Staus: " + GameManager.Instance.InData);
+        Debug.Log("Appear Status: " + IsAppear);
+        if (GameManager.Instance.InData != IsAppear)
+        {
+            //var skills = new List<SkillCreds>();
+            //skills.Add(skill);
+            //StartCoroutine(GameManager.Instance.LearnSkill(skills.ToArray()));
+            IsAppear = true;
+            PostDialog[0] = "คุณได้ทำการลงทะเบียนสำเร็จ ขอให้คุณโชคดี";
+        }
+        else
+        {
+            PostDialog[0] = "คุุณได้เคยทำการลงทะเบียนเรียบร้อยแล้ว";
+        }
+        IsAction = true;
+        Dialog();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -199,6 +230,7 @@ public class NPC : MonoBehaviour
     {
         if (collision.CompareTag("Player") && !collision.isTrigger)
         {
+            NotifyPanel.SetActive(false);
             IsClose = false;
         }
     }

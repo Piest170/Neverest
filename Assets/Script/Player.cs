@@ -63,9 +63,4 @@ public class Player : MonoBehaviour
         }
         transform.Translate(x * Time.deltaTime * Speed, y * Time.deltaTime * Speed, 0);
     }
-
-    public void OnCheckCharacter(int id)
-    {
-        StartCoroutine(GameManager.Instance.GetCharacter(id));
-    }
 }
