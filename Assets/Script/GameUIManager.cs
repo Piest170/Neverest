@@ -1,3 +1,4 @@
+using Assets.Script.Models;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,6 +6,8 @@ using UnityEngine.SceneManagement;
 
 public class GameUIManager : MonoBehaviour
 {
+    public static GameUIManager Instance;
+
     [Header("Reference")]
     [SerializeField]
     public GameObject Menu;
@@ -39,6 +42,11 @@ public class GameUIManager : MonoBehaviour
     public void GetEditMenu()
     {
         EditMenu.SetActive(true);
+    }
+
+    public void Saved()
+    {
+        Save.SetActive(false);
     }
 
     public void Exit()

@@ -21,4 +21,10 @@ namespace Assets.Script.Models
         public int learningLevel;
         public string learningStatus;
     }
+
+    [Serializable]
+    public class CheckSkill
+    {
+        public bool OnCheck;
+    }
 }

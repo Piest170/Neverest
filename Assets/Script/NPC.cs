@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class NPC : MonoBehaviour
@@ -24,7 +25,6 @@ public class NPC : MonoBehaviour
     {
         IsAction = false;
         IsAppear = false;
-        Debug.Log("CharacterId : " + PlayerPrefs.GetString("CharacterId"));
         Debug.Log("SkillId : " + PlayerPrefs.GetString("SkillId"));
         Debug.Log("Level : " + PlayerPrefs.GetString("LearningLevel"));
         Debug.Log("AppearStatus : " + IsAppear);
@@ -191,7 +191,8 @@ public class NPC : MonoBehaviour
             skillId = int.Parse(skillId),
             learningLevel = int.Parse(level)
         };
-        StartCoroutine(GameManager.Instance.GetCharacterSkill(characterSkill));
+        //StartCoroutine(GameManager.Instance.GetCharacterSkill(characterSkill));
+        
         SkillCreds skill = new SkillCreds()
         {
             characterId = int.Parse(characterId),
@@ -199,22 +200,65 @@ public class NPC : MonoBehaviour
             learningLevel = int.Parse(level),
             learningStatus = "Learning"
         };
-        Debug.Log("Data Staus: " + GameManager.Instance.InData);
-        Debug.Log("Appear Status: " + IsAppear);
-        if (GameManager.Instance.InData != IsAppear)
+
+        var skills = new List<SkillCreds>();
+        skills.Add(skill);
+        StartCoroutine(LearnSkill(skills.ToArray()));
+
+        //bool success = bool.Parse(PlayerPrefs.GetString("CheckSkill"));
+        //if (success)
+        //{
+        //    //var skills = new List<SkillCreds>();
+        //    //skills.Add(skill);
+        //    //StartCoroutine(GameManager.Instance.LearnSkill(skills.ToArray()));
+        //    PostDialog[0] = "คุณได้ทำการลงทะเบียนสำเร็จ ขอให้คุณโชคดี";
+        //}
+        //else
+        //{
+        //    PostDialog[0] = "คุุณได้เคยทำการลงทะเบียนแล้ว";
+        //}
+        //Debug.Log("Data Staus: " + success);
+        //Debug.Log("Appear Status: " + IsAppear);
+        //IsAppear = true;
+        //IsAction = true;
+        //Dialog();
+    }
+
+    public IEnumerator LearnSkill(SkillCreds[] skill)
+    {
+        string URL = "https://localhost:7094/api/Character/Skill";
+        string jsonData = Newtonsoft.Json.JsonConvert.SerializeObject(skill);
+        using (UnityWebRequest restAPI = UnityWebRequest.Put(URL, jsonData))
         {
-            //var skills = new List<SkillCreds>();
-            //skills.Add(skill);
-            //StartCoroutine(GameManager.Instance.LearnSkill(skills.ToArray()));
-            IsAppear = true;
-            PostDialog[0] = "คุณได้ทำการลงทะเบียนสำเร็จ ขอให้คุณโชคดี";
+            restAPI.method = UnityWebRequest.kHttpVerbPOST;
+            restAPI.SetRequestHeader("Content-Type", "application/json");
+            restAPI.SetRequestHeader("Accept", "text/plain");
+
+            yield return restAPI.SendWebRequest();
+
+            if (restAPI.isNetworkError || restAPI.isHttpError)
+            {
+                Debug.Log(restAPI.error);
+
+            }
+            else
+            {
+                Debug.Log("Form upload complete!");
+                if (restAPI.isDone)
+                {
+                    var results = JsonUtility.FromJson<ServiceResponse<CharacterModel>>(System.Text.Encoding.UTF8.GetString(restAPI.downloadHandler.data));
+                    Debug.Log(results);
+                    if (results.success)
+                        PostDialog[0] = "คุณได้ทำการลงทะเบียนสำเร็จ ขอให้คุณโชคดี";
+                    else
+                        PostDialog[0] = "คุุณได้เคยทำการลงทะเบียนแล้ว";
+
+                    IsAppear = true;
+                    IsAction = true;
+                    Dialog();
+                }
+            }
         }
-        else
-        {
-            PostDialog[0] = "คุุณได้เคยทำการลงทะเบียนเรียบร้อยแล้ว";
-        }
-        IsAction = true;
-        Dialog();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

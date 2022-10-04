@@ -9,11 +9,22 @@ namespace Assets.Script.Models
     [Serializable]
     public class CharacterModel
     {
-        public int CharacterId;
-        public int UserId;
-        public int JobId;
-        public int CharacterSkillsId;
-        public int CharacterQuests;
+        public int characterId;
+        public string characterName;
+        public string jobName;
+        public string completedSkill;
+        public List<Skill> Skills;
+    }
+
+    [Serializable]
+    public class Skill: CharacterModel
+    {
+        public int SkillId;
+        public string SkillName;
+        public string SkillGroup;
+        public int SkillLevel;
+        public int MaxSkillLevel;
+        public string SkillStatus;
     }
 
     [Serializable]
@@ -22,5 +33,12 @@ namespace Assets.Script.Models
         public int characterId;
         public int skillId;
         public int learningLevel;
+    }
+
+    [Serializable]
+    public class UpdateName
+    {
+        public int id;
+        public string characterName;
     }
 }

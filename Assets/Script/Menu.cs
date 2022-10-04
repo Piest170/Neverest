@@ -11,16 +11,21 @@ public class Menu : MonoBehaviour
     public TMP_Text jobname;
     [SerializeField]
     public TMP_Text skillname;
+    [SerializeField]
+    public TMP_Text editcharactername;
     void Start()
     {
-        string characterId = PlayerPrefs.GetString("CharacterId");
-        Debug.Log(characterId);
-        //StartCoroutine(GameManager.Instance.GetCharacter(int.Parse(characterId)));
+
     }
 
     void Update()
     {
         
+    }
+
+    public void Edit()
+    {
+
     }
 
 }
